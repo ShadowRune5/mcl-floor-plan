@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motorcycle Live 2026 – Interactive Floor Plan</title>
+<style>
+:root{--bg:#0b1020;--panel:#151c36;--panel2:#1e2850;--line:#32407a;--text:#f2f4fc;--mute:#aab3d6;--red:#ef3347;--blue:#3d6bff;--gold:#ffc83d;--green:#3ecf8e}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:17px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding-bottom:40px}
+header{padding:16px 16px 10px}
+h1{font-size:22px;margin:0;line-height:1.2}
+h1 span{color:var(--red)}
+.sub{color:var(--mute);font-size:14.5px;margin-top:3px}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+#meet{margin:0 16px 12px;background:#2a1220;border:1px solid var(--red);border-radius:14px;padding:12px 14px;width:calc(100% - 32px);text-align:left;display:block}
+#meet b{display:block;font-size:17px}
+#meet span{color:var(--mute);font-size:14.5px}
+.bar{display:flex;gap:8px;padding:0 16px 10px;overflow-x:auto;scrollbar-width:none}
+.bar::-webkit-scrollbar{display:none}
+.chip{flex:none;min-height:44px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:9px 16px;font-size:15.5px;white-space:nowrap}
+.chip.on{background:var(--blue);border-color:var(--blue);font-weight:700}
+.chip .dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:7px}
+#mapbox{position:relative;margin:0 16px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#0e1530}
+svg#map{display:block;width:100%;height:52vh;min-height:320px;max-height:620px;touch-action:none;user-select:none;-webkit-user-select:none}
+.zoom{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:8px}
+.zoom button{width:48px;height:48px;border-radius:12px;background:rgba(21,28,54,.95);border:1px solid var(--line);font-size:26px;line-height:1}
+.hint{position:absolute;left:10px;bottom:8px;font-size:13px;color:#dfe4f7;background:rgba(11,16,32,.8);padding:4px 9px;border-radius:8px;pointer-events:none}
+.stand{cursor:pointer}
+.stand rect{stroke:#0b1020;stroke-width:1.2}
+.stand text{pointer-events:none;font-weight:700;font-family:system-ui,sans-serif}
+.stand.dim{opacity:.18}
+.stand.plan rect{stroke:var(--gold);stroke-width:5}
+.stand.seen rect{stroke:var(--green);stroke-width:5}
+.stand.sel rect{stroke:var(--red);stroke-width:6}
+.small{fill:#2f45ad;stroke:#0b1020;stroke-width:.8}
+.small.dim{opacity:.25}
+.hall-lbl{fill:#fff;font-weight:800;font-size:26px;letter-spacing:.08em;font-family:system-ui,sans-serif}
+.gate{fill:#1a2140;font-weight:800;font-size:22px;font-family:system-ui,sans-serif}
+.grey-lbl{fill:#fff;font-weight:700;font-size:13px;letter-spacing:.06em;font-family:system-ui,sans-serif}
+.badge circle{fill:var(--gold);stroke:#0b1020;stroke-width:1.5}
+.badge text{font:800 13px system-ui,sans-serif;fill:#1b1500;pointer-events:none}
+.pin{pointer-events:none}
+#card{margin:12px 16px 0;background:var(--panel);border:2px solid var(--red);border-radius:16px;padding:15px 16px;display:none}
+#card.show{display:block}
+#card h2{margin:0 0 2px;font-size:20px;line-height:1.25}
+.meta{color:var(--mute);font-size:14.5px}
+#card p{margin:8px 0}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.btn{min-height:50px;border-radius:13px;border:1px solid var(--line);background:var(--panel2);padding:11px 18px;font-size:16.5px;font-weight:700}
+.btn.wide{flex:1 1 100%}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#1b1500}
+.btn.green{background:var(--green);border-color:var(--green);color:#03170d}
+.btn.blue{background:var(--blue);border-color:var(--blue)}
+.tabs{display:flex;gap:8px;margin:16px 16px 0;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:5}
+.tab{flex:1;min-height:50px;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:8px 4px;font-weight:700;font-size:15.5px;color:var(--mute)}
+.tab.on{color:#fff;background:var(--red);border-color:var(--red)}
+.tools{padding:10px 16px 8px}
+#q{width:100%;min-height:52px;padding:12px 15px;border-radius:13px;border:1px solid var(--line);background:var(--panel);font-size:17px}
+#q::placeholder,textarea::placeholder,input::placeholder{color:var(--mute)}
+#progress{margin:6px 16px 0;font-size:15px;color:var(--mute);display:none}
+.track{height:10px;background:var(--panel2);border-radius:9px;margin-top:6px;overflow:hidden}
+.fill{height:100%;background:var(--green);width:0;transition:width .2s}
+#list{list-style:none;margin:4px 16px 0;padding:0}
+#list li{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #1f2950}
+.info{flex:1;min-width:0;background:none;border:0;text-align:left;padding:4px 0}
+.nm{font-weight:700;display:block}
+.nm.done{text-decoration:line-through;color:var(--mute)}
+.mt{font-size:14px;color:var(--mute);display:block}
+.who{font-size:14px;color:var(--gold);display:block}
+.act{flex:none;min-width:86px;min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-size:15px;font-weight:700;padding:6px 10px}
+.act.gold{background:var(--gold);border-color:var(--gold);color:#1b1500}
+.act.green{background:var(--green);border-color:var(--green);color:#03170d}
+.empty{color:var(--mute);padding:26px 0;text-align:center}
+#group{display:none;padding:4px 16px 0}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px 16px;margin-top:12px}
+.step h3{margin:0 0 4px;font-size:18px}
+.step h3 i{font-style:normal;display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:var(--red);font-size:15px;margin-right:8px}
+.step p{margin:4px 0 10px;color:var(--mute);font-size:15px}
+.field{width:100%;min-height:50px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);font-size:17px;margin-bottom:10px}
+textarea.field{min-height:96px;resize:vertical}
+.msg{font-size:14.5px;margin-top:8px;min-height:1.2em}
+.friend{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid #1f2950}
+.friend span{flex:1}
+.linkbtn{background:none;border:0;color:var(--mute);text-decoration:underline;font-size:14.5px;min-height:44px;padding:0 4px}
+footer{color:var(--mute);font-size:13px;padding:22px 16px 10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Motorcycle Live <span>2026</span> floor plan</h1>
+  <div class="sub">NEC Birmingham · 21–29 November · tap any stand on the map</div>
+</header>
+
+<button id="meet"></button>
+
+<div class="bar" id="jump"></div>
+<div id="mapbox">
+  <svg id="map" aria-label="Floor plan map"></svg>
+  <div class="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">−</button></div>
+  <div class="hint">Drag to move · pinch to zoom</div>
+</div>
+
+<div id="card"></div>
+
+<div class="tabs">
+  <button class="tab on" data-tab="all">All stands</button>
+  <button class="tab" data-tab="mine">My list <span id="cnt"></span></button>
+  <button class="tab" data-tab="group">Group <span id="gcnt"></span></button>
+</div>
+
+<div id="browse">
+  <div class="tools"><input id="q" type="search" placeholder="Search for a brand…" autocomplete="off"></div>
+  <div class="bar" id="cats"></div>
+  <div id="progress"><span id="ptxt"></span><div class="track"><div class="fill" id="pfill"></div></div>
+    <button class="linkbtn" id="clear">Clear my list</button></div>
+  <ul id="list"></ul>
+</div>
+
+<div id="group">
+  <div class="step"><h3><i>1</i>Your name</h3>
+    <p>So the group knows whose picks are whose.</p>
+    <input class="field" id="nm" maxlength="16" placeholder="e.g. Jim" autocomplete="off"></div>
+  <div class="step"><h3><i>2</i>Send your picks to the group</h3>
+    <p>Add stands to <b>My list</b> first, then copy this message and paste it into your group chat.</p>
+    <button class="btn blue wide" id="copy" style="width:100%">Copy my picks</button>
+    <textarea class="field" id="out" readonly style="margin:10px 0 0;font-size:14.5px"></textarea>
+    <div class="msg" id="copymsg"></div></div>
+  <div class="step"><h3><i>3</i>Add a friend's picks</h3>
+    <p>Copy a friend's message from the group chat and paste it here. You can paste several at once.</p>
+    <textarea class="field" id="in" placeholder="Paste a message here…"></textarea>
+    <button class="btn wide" id="add" style="width:100%">Add to group</button>
+    <div class="msg" id="addmsg"></div>
+    <div id="friends"></div></div>
+  <div class="step"><h3>Most wanted by the group</h3>
+    <p>Stands picked by the most people. The gold numbers on the map show the same thing.</p>
+    <ul id="pop" style="list-style:none;margin:0;padding:0"></ul></div>
+</div>
+
+<footer>Unofficial schematic redrawn from the organiser's published floor plan — positions are approximate and small numbered stands are shown as plain blue blocks. Your list and your group's picks are saved on this phone only. JKH</footer>
+</div>
+
+<script>
+// Meet-up details — shown in the red banner and pinned on the map once set.
+const MEET={place:'',time:'',notes:''};
+const PLACES={'p-main':['Main NEC Entrance (Piazza)',975,1490],'p-h2':['Hall 2 entrance',812,1182],'p-h3':['Hall 3 entrance',908,1012],'p-h3a':['Hall 3A entrance',1040,1012],'p-h4':['Hall 4 entrance',1125,1182]};
+const CAT={m:{n:'Manufacturers',c:'#f4f6fb',t:'#10152b'},z:{n:'Zones & features',c:'#12141c',t:'#ffffff'},f:{n:'Food & drink',c:'#b9d24c',t:'#1c2500'},a:{n:'Facilities',c:'#58c7d6',t:'#04242a'}};
+// id, name, cat, hall, x,y,w,h, label lines, note
+const S=[
+['fan3','Fan Zone (Hall 3)','z','Hall 3',450,592,92,70,['FAN','ZONE'],'MCL Fan Zone at the top-left corner of Hall 3.'],
+['food3','Food & Drink (Hall 3)','f','Hall 3',437,668,32,220,['FOOD & DRINK'],'Catering strip on the left wall of Hall 3, with toilets and accessible toilets alongside.'],
+['coll','The Collection','z','Hall 3',494,683,48,75,['THE','COLLEC-','TION'],'MCL feature stand between the Fan Zone and Kawasaki.'],
+['kawa','Kawasaki & Bimota','m','Hall 3',494,775,98,172,['Kawasaki','&','Bimota'],'Shared Kawasaki / Bimota stand.'],
+['tri','Triumph','m','Hall 3',611,714,126,118,['TRIUMPH'],'Triumph also runs the TXP Experience in the Hall 4 Festival Zone.'],
+['piag','Aprilia · Piaggio · Vespa · Moto Guzzi','m','Hall 3',611,856,126,90,['Aprilia · Piaggio','Vespa · Moto Guzzi'],'Piaggio Group stand, directly below Triumph.'],
+['abr','ABR Festival Zone','z','Hall 3',761,590,88,132,['ABR','FESTIVAL','ZONE'],'Marked NEW on the plan. Adventure Bike Rider Festival feature area.'],
+['re','Royal Enfield','m','Hall 3',755,771,124,93,['ROYAL','ENFIELD'],''],
+['canam','Can-Am','m','Hall 3',755,880,57,66,['Can-Am'],''],
+['yam','Yamaha','m','Hall 3',898,771,132,93,['YAMAHA'],'Main Yamaha stand. The Yamaha Live Lounge is separate, in Hall 2.'],
+['ind','Indian Motorcycle','m','Hall 3',898,880,87,66,['Indian','Motorcycle'],'Stand carries 125 Years branding.'],
+['bike','Bikesure','z','Hall 3',1045,880,33,66,['Bikesure'],'Show sponsor (insurance).'],
+['duc','Ducati','m','Hall 3A',1045,771,120,93,['DUCATI'],''],
+['bsa','BSA','m','Hall 3A',1082,880,86,66,['BSA'],''],
+['hd','Harley-Davidson','m','Hall 3A',1211,771,114,93,['HARLEY-','DAVIDSON'],''],
+['ktm','KTM','m','Hall 3A',1183,880,142,66,['KTM'],''],
+['spada','Spada (helmet & bag collection point)','a','Hall 3A',1208,700,50,53,['SPADA','bag drop'],'Spada helmet and bag collection point.'],
+['fan3a','Fan Zone (Hall 3A)','z','Hall 3A',1273,592,88,71,['FAN','ZONE'],'Second MCL Fan Zone, top-right corner of Hall 3A.'],
+['food3a','Food & Drink (Hall 3A)','f','Hall 3A',1343,668,32,222,['FOOD & DRINK'],'Catering strip on the right wall of Hall 3A, with toilets.'],
+['multi','Benelli · Keeway · Benda · Hero · Lambretta · Voge · SYM','m','Hall 2',497,965,118,100,['Benelli · Keeway','Benda · Hero','Lambretta','Voge · SYM'],'Shared multi-brand stand. A couple of smaller logos on it weren\'t legible in the source image.'],
+['fantic','Fantic & Zontes','m','Hall 2',632,1060,105,85,['FANTIC','ZONTES'],''],
+['suz','Suzuki','m','Hall 2',497,1082,118,110,['SUZUKI'],''],
+['bmw','BMW Motorrad','m','Hall 2',367,1211,175,140,['BMW','MOTORRAD'],'Includes the BMW Make Life a Ride Arena.'],
+['honda','Honda','m','Hall 2',558,1211,120,140,['HONDA'],''],
+['krazy','Krazy Horse & others','m','Hall 2',693,1211,52,140,['Krazy','Horse','+ others'],'Shared stand. Krazy Horse is readable; the other small logos weren\'t legible.'],
+['lounge','Yamaha Live Lounge & Street Food Court / Bar','f','Hall 2',255,1036,100,66,['YAMAHA','LIVE LOUNGE','& Street Food'],'Stage lounge with street food court and bar, far-left of Hall 2.'],
+['wc2','Toilets (Hall 2)','a','Hall 2',238,1128,34,90,['WC'],'Toilets and accessible toilets on the left wall of Hall 2.'],
+['tt','Isle of Man TT Simulator','z','Hall 2',277,1283,30,78,['IoM TT SIMULATOR'],''],
+['kiddi','Kiddimoto','z','Hall 2',323,1283,32,78,['KIDDIMOTO'],'Children\'s balance-bike circuit.'],
+['l2r','MCL Learn2Ride Zone','z','Hall 2',645,1387,133,152,['MCL','LEARN2RIDE','ZONE'],'Try riding for the first time. Just inside the Hall 2 entrance; clothing provided by the official clothing partners.'],
+['org','Organiser Office','a','Hall 2',782,1245,26,92,['ORGANISER OFFICE'],'Beside the Hall 2 entrance.'],
+['zx','ZXMoto','m','Hall 4',1200,967,70,70,['ZXMOTO'],''],
+['nort','Norton','m','Hall 4',1200,1050,70,115,['NORTON'],''],
+['zero','Zero Motorcycles','m','Hall 4',1286,1015,35,65,['ZERO'],''],
+['ajs','AJS','m','Hall 4',1286,1095,35,70,['AJS'],''],
+['kove','Kove','m','Hall 4',1333,1097,64,68,['KOVE'],''],
+['cf','CFMoto','m','Hall 4',1200,1183,65,67,['CFMOTO'],''],
+['ohv','Ohvale','m','Hall 4',1200,1265,65,38,['OHVALE'],'Logo read from a small image — name may not be exact.'],
+['bsb','30 Years of BSB Display','z','Hall 4',1172,1215,16,88,['BSB DISPLAY'],'British Superbike anniversary display by the Hall 4 entrance.'],
+['eride','E-Ride Zone – display & start point','z','Hall 4',1333,1328,66,24,['E-RIDE start'],'Start point for the electric ride zone; the track runs along the bottom of the Festival Zone.'],
+['vip','Black Horse Exhibitor & VIP Lounge','a','Hall 4',1563,981,164,24,['Black Horse VIP Lounge'],''],
+['wc4','Toilets (Hall 4)','a','Hall 4',1731,973,86,32,['WC'],'Toilets and accessible toilets, top wall of Hall 4.'],
+['fest','Festival Zone & MCL Super Stage','z','Hall 4',1445,1027,452,315,['FESTIVAL ZONE','Moto Action Show','Triumph TXP Experience','E-Ride Zone · MCL Super Stage'],'The big live-action area: Moto Action Show, Triumph TXP Experience, E-Ride Zone and the MCL Super Stage, hosted by James Whitham, Grace Webb and Matt Crowhurst.'],
+['track','E-Ride Track','z','Hall 4',1303,1348,594,26,['‹‹‹ TRACK ›››'],'Ride track running along the bottom edge of the Festival Zone.'],
+['elite','Elite Test Ride Zone','z','Hall 4',1165,1402,135,138,['ELITE','TEST RIDE','ZONE'],'Test ride booking point is here, just outside the Hall 4 entrance.']
+];
+// unlabelled small stands (approximate)
+const SM=[];
+(function(){const g=(x,y,w,h,nx,ny,gx,gy)=>{for(let i=0;i<nx;i++)for(let j=0;j<ny;j++)SM.push([x+i*(w+gx),y+j*(h+gy),w,h])};
+g(557,612,38,16,1,3,0,14);g(557,708,38,48,1,1,0,0);g(611,612,18,40,2,1,8,0);g(655,612,16,40,2,1,8,0);g(684,612,24,16,1,2,0,8);g(722,612,22,40,1,1,0,0);g(722,660,22,40,1,1,0,0);
+g(862,590,60,165,1,1,0,0);g(938,605,85,22,1,1,0,0);g(938,640,38,28,1,1,0,0);g(938,685,85,70,1,1,0,0);g(1040,650,40,105,1,1,0,0);g(1034,610,40,22,1,1,0,0);
+g(1098,605,24,26,1,1,0,0);g(1136,605,40,16,3,1,6,0);g(1136,642,52,14,1,2,0,14);g(1090,650,32,105,1,1,0,0);g(1136,702,52,52,1,1,0,0);g(1273,678,24,22,2,1,8,0);g(1273,715,50,36,1,1,0,0);g(1178,772,20,90,1,1,0,0);
+g(826,880,54,28,1,2,0,10);g(772,735,50,16,1,1,0,0);g(1003,880,24,40,1,1,0,0);
+g(632,965,105,45,1,1,0,0);g(650,1022,34,18,1,1,0,0);g(692,1022,44,18,1,1,0,0);g(678,1160,60,32,1,1,0,0);
+g(362,1008,12,26,1,3,0,22);g(388,1008,34,18,1,1,0,0);g(404,1052,22,26,1,1,0,0);g(441,1008,40,68,1,1,0,0);g(388,1092,12,36,2,1,6,0);g(430,1092,12,36,3,1,8,0);g(350,1160,38,30,3,1,10,0);g(318,1211,36,58,1,1,0,0);g(285,1215,18,16,1,2,0,18);g(285,1140,55,55,1,1,0,0);g(386,1362,22,14,3,1,4,0);g(524,1362,32,14,2,1,4,0);g(758,1211,18,150,1,1,0,0);g(758,965,110,12,1,1,0,0);
+g(1286,965,40,22,1,1,0,0);g(1340,1012,58,26,1,1,0,0);g(1340,1050,40,30,1,1,0,0);g(1410,1030,22,90,1,1,0,0);g(1410,1130,22,36,1,1,0,0);g(1286,1183,30,24,1,2,0,14);g(1333,1183,64,22,1,1,0,0);g(1333,1222,34,26,1,1,0,0);g(1380,1222,18,26,1,1,0,0);g(1410,1183,22,150,1,1,0,0);g(1286,1265,56,36,1,1,0,0);g(1333,1262,30,16,1,2,0,10);g(1200,1318,26,26,2,1,10,0);g(1200,1365,65,30,1,1,0,0);
+})();
+const HALLS={All:[215,550,1720,1005],'Hall 2':[220,950,600,605],'Hall 3':[415,555,680,420],'Hall 3A':[1030,555,370,420],'Hall 4':[1130,950,800,605]};
+const NS='http://www.w3.org/2000/svg',svg=document.getElementById('map');
+const el=(n,a,p,t)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;(p||svg).appendChild(e);return e};
+
+// ---- draw
+const world=el('g',{});
+[[425,567,960,400],[228,958,552,435],[1075,958,845,445],[640,1380,142,165],[1160,1398,145,148]].forEach(r=>el('rect',{x:r[0],y:r[1],width:r[2],height:r[3],fill:'#dde1ea'},world));
+[[788,1000,90,180],[885,1085,140,125],[885,1215,180,150],[885,1375,180,145],[1040,1000,110,150]].forEach(r=>el('rect',{x:r[0],y:r[1],width:r[2],height:r[3],fill:'#b9bdc9',rx:3},world));
+el('text',{x:955,y:1152,'text-anchor':'middle',class:'grey-lbl'},world,'COURTYARD');
+el('text',{x:975,y:1300,'text-anchor':'middle',class:'grey-lbl'},world,'BUY TICKETS');
+el('text',{x:975,y:1455,'text-anchor':'middle',class:'grey-lbl','font-size':18},world,'PIAZZA');
+el('text',{x:975,y:1545,'text-anchor':'middle',class:'grey-lbl'},world,'MAIN NEC ENTRANCE');
+[['↑ 3',908,1040],['↑ 3A',1040,1040],['← 2',825,1190],['4 →',1112,1190]].forEach(g=>el('text',{x:g[1],y:g[2],'text-anchor':'middle',class:'gate'},world,g[0]));
+[['HALL 3',430,558],['HALL 3A',1250,558],['HALL 2',395,1440],['HALL 4',1550,1440]].forEach(h=>el('text',{x:h[1],y:h[2],class:'hall-lbl'},world,h[0]));
+const smEls=SM.map(r=>el('rect',{x:r[0],y:r[1],width:r[2],height:r[3],class:'small'},world));
+const G={};
+S.forEach(s=>{const [id,name,c,hall,x,y,w,h,lines]=s;
+  const g=el('g',{class:'stand','data-id':id,tabindex:0,role:'button','aria-label':name},world);
+  el('rect',{x,y,width:w,height:h,fill:CAT[c].c,rx:2},g);
+  const rot=h>w*1.6&&lines.length===1, W=rot?h:w, H=rot?w:h;
+  const mx=Math.max(...lines.map(l=>l.length));
+  const fs=Math.max(5,Math.min(18,H/(lines.length*1.3),W/(mx*0.62)));
+  const cx=x+w/2,cy=y+h/2;
+  const t=el('text',{'text-anchor':'middle','font-size':fs.toFixed(1),fill:CAT[c].t,transform:rot?`rotate(-90 ${cx} ${cy})`:''},g);
+  lines.forEach((l,i)=>el('tspan',{x:cx,y:(cy+(i-(lines.length-1)/2)*fs*1.2+fs*0.35).toFixed(1)},t,l));
+  G[id]=g;});
+
+// ---- pan / zoom
+let vb={x:0,y:0,s:1};
+const size=()=>svg.getBoundingClientRect();
+const apply=()=>{const r=size();svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${r.width*vb.s} ${r.height*vb.s}`)};
+function fit(b,pad=1.06){const r=size();const s=Math.max(b[2]/r.width,b[3]/r.height)*pad;vb.s=s;vb.x=b[0]+b[2]/2-r.width*s/2;vb.y=b[1]+b[3]/2-r.height*s/2;apply()}
+function zoomAt(cx,cy,f){const r=size();const ns=Math.min(6,Math.max(.25,vb.s*f));const px=cx-r.left,py=cy-r.top;vb.x+=px*(vb.s-ns);vb.y+=py*(vb.s-ns);vb.s=ns;apply()}
+const P=new Map();let moved=0,pd=0;
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);P.set(e.pointerId,[e.clientX,e.clientY]);if(P.size===1)moved=0;pd=0});
+svg.addEventListener('pointermove',e=>{if(!P.has(e.pointerId))return;const p=P.get(e.pointerId),dx=e.clientX-p[0],dy=e.clientY-p[1];
+  if(P.size===1){vb.x-=dx*vb.s;vb.y-=dy*vb.s;moved+=Math.abs(dx)+Math.abs(dy);apply()}
+  P.set(e.pointerId,[e.clientX,e.clientY]);
+  if(P.size===2){const [a,b]=[...P.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(pd)zoomAt((a[0]+b[0])/2,(a[1]+b[1])/2,pd/d);pd=d;moved=99}});
+const up=e=>{if(!P.has(e.pointerId))return;P.delete(e.pointerId);pd=0;
+  if(moved<8&&e.type==='pointerup'){const t=document.elementFromPoint(e.clientX,e.clientY);const g=t&&t.closest&&t.closest('.stand');pick(g?g.dataset.id:null,false)}};
+svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.clientX,e.clientY,e.deltaY>0?1.15:.87)},{passive:false});
+svg.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const g=e.target.closest('.stand');if(g){e.preventDefault();pick(g.dataset.id,false)}}});
+const mid=()=>{const r=size();return[r.left+r.width/2,r.top+r.height/2]};
+document.getElementById('zin').onclick=()=>zoomAt(...mid(),.7);
+document.getElementById('zout').onclick=()=>zoomAt(...mid(),1.4);
+
+
+// ---- state
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+const store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let st=load('mcl26-visit',{}),friends=load('mcl26-group',{}),myName=load('mcl26-name','');
+const save=()=>store('mcl26-visit',st);
+let sel=null,cat='all',tab='all',query='';
+const byId=id=>S.find(s=>s[0]===id);
+const $=id=>document.getElementById(id);
+const cleanName=n=>String(n||'').replace(/[^A-Za-z0-9 ]/g,'').trim().slice(0,16);
+const enc=ids=>{let n=0n;S.forEach((s,i)=>{if(ids.includes(s[0]))n|=1n<<BigInt(i)});return n.toString(36)};
+const dec=c=>{let n=0n;for(const ch of c){const v=parseInt(ch,36);if(isNaN(v))return[];n=n*36n+BigInt(v)}return S.filter((s,i)=>(n>>BigInt(i))&1n).map(s=>s[0])};
+const myIds=()=>Object.keys(st).filter(byId);
+// who picked each stand: {standId:[names]}
+function pickers(){const m={};const add=(id,n)=>{(m[id]=m[id]||[]).push(n)};
+  myIds().forEach(id=>add(id,'You'));
+  Object.keys(friends).forEach(n=>dec(friends[n]).forEach(id=>add(id,n)));return m}
+
+// ---- meet-up
+const meetPos=()=>{if(!MEET.place)return null;if(PLACES[MEET.place]){const p=PLACES[MEET.place];return{name:p[0],x:p[1],y:p[2]}}const s=byId(MEET.place);return s?{name:s[1],x:s[4]+s[6]/2,y:s[5]+s[7]/2}:null};
+(function(){const b=$('meet'),p=meetPos();
+  if(p){b.innerHTML='<b></b><span></span>';b.querySelector('b').textContent='📍 Meet at: '+p.name+(MEET.time?' · '+MEET.time:'');b.querySelector('span').textContent=(MEET.notes?MEET.notes+' · ':'')+'Tap to show on the map';
+    b.onclick=()=>{fit([p.x-170,p.y-170,340,340]);$('mapbox').scrollIntoView({behavior:'smooth',block:'start'})};
+    const g=el('g',{class:'pin'},world);el('circle',{cx:p.x,cy:p.y,r:26,fill:'#ef3347',opacity:.3},g);el('circle',{cx:p.x,cy:p.y,r:13,fill:'#ef3347',stroke:'#fff','stroke-width':3},g);
+    el('text',{x:p.x,y:p.y-32,'text-anchor':'middle','font-size':20,'font-weight':800,fill:'#ef3347',stroke:'#fff','stroke-width':4,'paint-order':'stroke','font-family':'system-ui,sans-serif'},g,'MEET HERE');
+  }else{b.innerHTML='<b>📍 Meet-up point: to be confirmed</b><span>The organiser will add the place and time here.</span>';b.disabled=true}})();
+
+// ---- controls
+const jump=$('jump');
+Object.keys(HALLS).forEach(h=>{const b=document.createElement('button');b.className='chip';b.textContent=h==='All'?'Whole show':h;b.onclick=()=>fit(HALLS[h],1.02);jump.appendChild(b)});
+const cats=$('cats');
+[['all','Everything']].concat(Object.keys(CAT).map(k=>[k,CAT[k].n])).forEach(([k,n])=>{const b=document.createElement('button');b.className='chip'+(k==='all'?' on':'');
+  b.innerHTML=(CAT[k]?`<span class="dot" style="background:${CAT[k].c};border:1px solid #6b7399"></span>`:'')+n;
+  b.onclick=()=>{cat=k;[...cats.children].forEach(c=>c.classList.toggle('on',c===b));refresh()};cats.appendChild(b)});
+$('q').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();refresh()});
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{tab=t.dataset.tab;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));refresh()});
+$('clear').onclick=()=>{st={};save();refresh()};
+
+const match=s=>(cat==='all'||s[2]===cat)&&(!query||(s[1]+' '+s[3]+' '+s[9]).toLowerCase().includes(query));
+function toggle(id,key){if(key==='plan'){if(st[id])delete st[id];else st[id]=1}else{st[id]=st[id]===2?1:2}save();refresh()}
+function pick(id,zoom){sel=id;if(id&&zoom){const s=byId(id);const m=Math.max(s[6],s[7],130);fit([s[4]+s[6]/2-m*1.6,s[5]+s[7]/2-m*1.6,m*3.2,m*3.2]);$('mapbox').scrollIntoView({behavior:'smooth',block:'start'})}refresh()}
+
+const badges=el('g',{},world);
+function refresh(){
+  const who=pickers(),filtering=tab!=='group'&&(cat!=='all'||!!query);
+  S.forEach(s=>{const g=G[s[0]];g.classList.toggle('dim',filtering&&!match(s));g.classList.toggle('plan',st[s[0]]===1);g.classList.toggle('seen',st[s[0]]===2);g.classList.toggle('sel',sel===s[0])});
+  smEls.forEach(e=>e.classList.toggle('dim',filtering));
+  if(sel)world.appendChild(G[sel]);
+  // group badges on map
+  while(badges.firstChild)badges.removeChild(badges.firstChild);
+  const nf=Object.keys(friends).length;
+  if(nf)S.forEach(s=>{const n=(who[s[0]]||[]).length;if(!n)return;const g=el('g',{class:'badge'},badges),x=s[4]+s[6]-2,y=s[5]+2;el('circle',{cx:x,cy:y,r:11},g);el('text',{x,y:y+4.5,'text-anchor':'middle'},g,n)});
+  world.appendChild(badges);
+  // card
+  const card=$('card');
+  if(sel){const s=byId(sel),v=st[sel],names=(who[sel]||[]).filter(n=>n!=='You');
+    card.className='show';
+    card.innerHTML=`<h2></h2><div class="meta">${s[3]} · ${CAT[s[2]].n}</div><p class="note"></p><div class="who"></div><div class="acts">
+      <button class="btn wide ${v?'gold':'blue'}" data-a="plan">${v?'★ On my list — tap to remove':'＋ Add to my list'}</button>
+      ${v?`<button class="btn ${v===2?'green':''}" data-a="seen">${v===2?'✓ Visited':'Tick as visited'}</button>`:''}
+      <button class="btn" data-a="close">Close</button></div>`;
+    card.querySelector('h2').textContent=s[1];const p=card.querySelector('.note');if(s[9])p.textContent=s[9];else p.remove();
+    if(names.length)card.querySelector('.who').textContent='Also picked by: '+names.join(', ');
+    card.querySelectorAll('button').forEach(b=>b.onclick=()=>{b.dataset.a==='close'?pick(null):toggle(sel,b.dataset.a)});
+  }else card.className='';
+  // counts
+  const ids=myIds(),seen=ids.filter(i=>st[i]===2).length;
+  $('cnt').textContent=ids.length?`(${ids.length})`:'';$('gcnt').textContent=nf?`(${nf+1})`:'';
+  $('browse').style.display=tab==='group'?'none':'block';$('group').style.display=tab==='group'?'block':'none';
+  if(tab==='group'){renderGroup(who);return}
+  $('progress').style.display=tab==='mine'&&ids.length?'block':'none';
+  $('ptxt').textContent=`${seen} of ${ids.length} visited`;$('pfill').style.width=(ids.length?seen/ids.length*100:0)+'%';
+  const ul=$('list');ul.innerHTML='';
+  let rows=S.filter(match);if(tab==='mine')rows=rows.filter(s=>st[s[0]]);
+  rows.sort((a,b)=>tab==='mine'?(a[3]+a[1]).localeCompare(b[3]+b[1]):a[1].localeCompare(b[1]));
+  if(!rows.length){const li=document.createElement('li');li.className='empty';li.style.display='block';li.textContent=tab==='mine'&&!ids.length?'Nothing on your list yet. Tap a stand, then “Add to my list”.':'No stands match.';ul.appendChild(li);return}
+  rows.forEach(s=>ul.appendChild(row(s,who)));
+}
+function row(s,who,showWho){const v=st[s[0]],li=document.createElement('li');
+  const info=document.createElement('button');info.className='info';
+  info.innerHTML='<span class="nm"></span><span class="mt"></span>';const nm=info.querySelector('.nm');nm.textContent=s[1];if(v===2)nm.classList.add('done');
+  info.querySelector('.mt').textContent=s[3]+' · tap to find on map';
+  const names=who[s[0]]||[];if(showWho&&names.length){const w=document.createElement('span');w.className='who';w.textContent=names.join(', ');info.appendChild(w)}
+  info.onclick=()=>pick(s[0],true);li.appendChild(info);
+  const b=document.createElement('button');
+  if(tab==='mine'){b.className='act'+(v===2?' green':'');b.textContent=v===2?'✓ Visited':'Tick off';b.onclick=()=>toggle(s[0],'seen')}
+  else{b.className='act'+(v?' gold':'');b.textContent=v?'★ Added':'＋ Add';b.onclick=()=>toggle(s[0],'plan')}
+  li.appendChild(b);return li}
+
+// ---- group
+const shareText=()=>{const ids=myIds(),n=cleanName(myName)||'Someone';
+  return `${n}'s Motorcycle Live picks: ${ids.map(i=>byId(i)[1]).join(', ')||'(none yet)'}.\nPaste this whole message into the Group tab of the floor plan to add my picks. #MCL26-${n.replace(/ /g,'_')}-${enc(ids)}`};
+function renderGroup(who){
+  if(document.activeElement!==$('nm'))$('nm').value=myName;
+  $('out').value=shareText();
+  const f=$('friends');f.innerHTML='';
+  Object.keys(friends).forEach(n=>{const d=document.createElement('div');d.className='friend';const sp=document.createElement('span');sp.textContent=`${n} — ${dec(friends[n]).length} picks`;
+    const x=document.createElement('button');x.className='linkbtn';x.textContent='Remove';x.onclick=()=>{delete friends[n];store('mcl26-group',friends);refresh()};d.append(sp,x);f.appendChild(d)});
+  const pop=$('pop');pop.innerHTML='';
+  const rows=S.filter(s=>(who[s[0]]||[]).length).sort((a,b)=>who[b[0]].length-who[a[0]].length||a[1].localeCompare(b[1]));
+  if(!rows.length){const li=document.createElement('li');li.className='empty';li.textContent='No picks yet — add stands to your list, or paste a friend\'s message above.';pop.appendChild(li);return}
+  rows.forEach(s=>{const li=document.createElement('li');li.style.cssText='display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #1f2950';
+    const c=document.createElement('span');c.textContent=who[s[0]].length;c.style.cssText='flex:none;width:36px;height:36px;line-height:36px;text-align:center;border-radius:50%;background:var(--gold);color:#1b1500;font-weight:800';
+    const info=document.createElement('button');info.className='info';info.innerHTML='<span class="nm"></span><span class="who"></span>';info.querySelector('.nm').textContent=s[1];info.querySelector('.who').textContent=who[s[0]].join(', ');
+    info.onclick=()=>pick(s[0],true);li.append(c,info);pop.appendChild(li)})}
+$('nm').addEventListener('input',e=>{myName=cleanName(e.target.value);store('mcl26-name',myName);$('out').value=shareText()});
+$('copy').onclick=async()=>{const m=$('copymsg');
+  if(!myIds().length){m.textContent='Add at least one stand to My list first.';return}
+  try{await navigator.clipboard.writeText(shareText());m.textContent='Copied ✓ Now paste it into your group chat.'}
+  catch(e){$('out').focus();$('out').select();m.textContent='Couldn\'t copy automatically — press and hold the message above and choose Copy.'}};
+$('add').onclick=()=>{const m=$('addmsg'),re=/#MCL26-([A-Za-z0-9_]{1,16})-([0-9a-z]+)/g;let x,added=[];
+  while((x=re.exec($('in').value))){const n=x[1].replace(/_/g,' ');if(dec(x[2]).length||x[2]==='0'){friends[n]=x[2];added.push(n)}}
+  if(added.length){store('mcl26-group',friends);$('in').value='';m.textContent='Added: '+added.join(', ')+' ✓';refresh()}
+  else m.textContent='No picks found in that message. Make sure you copied the whole thing, including the #MCL26 code at the end.'};
+
+fit(HALLS.All,1.02);refresh();
+let rw=size().width;window.addEventListener('resize',()=>{const w=size().width;if(Math.abs(w-rw)>40){rw=w;fit(HALLS.All,1.02)}else apply()});
+</script>
+</body>
+</html>
